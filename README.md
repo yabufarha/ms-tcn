@@ -7,13 +7,13 @@ Tested with:
 
 ### Training:
 
-* download the [data](https://mega.nz/#!O6wXlSTS!wcEoDT4Ctq5HRq_hV-aWeVF1_JB3cacQBQqOLjCIbc8) folder, which contains the features and the ground truth labels. (~30GB)
-* extract it so that you have the `data` folder in the same directory as `main.py`.
+* Download the [data](https://mega.nz/#!O6wXlSTS!wcEoDT4Ctq5HRq_hV-aWeVF1_JB3cacQBQqOLjCIbc8) folder, which contains the features and the ground truth labels. (~30GB)
+* Extract it so that you have the `data` folder in the same directory as `main.py`.
 * To train the model run `python main.py --action=train --dataset=DS --split=SP` where `DS` is `breakfast`, `50salads` or `gtea`, and `SP` is the split number (1-5) for 50salads and (1-4) for the other datasets.
 
 ### Prediction:
 
-* Run `python main.py --action=predict --dataset=DS --split=SP` for evaluating the the model on split1 of Breakfast. 
+Run `python main.py --action=predict --dataset=DS --split=SP` for evaluating the the model on split1 of Breakfast. 
 
 ### Evaluation:
 
