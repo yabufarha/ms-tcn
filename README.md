@@ -13,7 +13,7 @@ Tested with:
 
 ### Prediction:
 
-Run `python main.py --action=predict --dataset=DS --split=SP` for evaluating the the model on split1 of Breakfast. 
+Run `python main.py --action=predict --dataset=DS --split=SP`. 
 
 ### Evaluation:
 
