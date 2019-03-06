@@ -1,5 +1,5 @@
 # MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation
-This repository provides a PyTorch implementation of the paper [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation]().
+This repository provides a PyTorch implementation of the paper [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation](https://arxiv.org/pdf/1903.01945.pdf).
 
 Tested with:
 - PyTorch 0.4.1
