@@ -5,6 +5,13 @@ Tested with:
 - PyTorch 0.4.1
 - Python 2.7.12
 
+
+### Qualitative Results:
+
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=9XphWB9w7p8"><img src="https://img.youtube.com/vi/9XphWB9w7p8/0.jpg" alt="IMAGE ALT TEXT"></a>
+</div>
+
 ### Training:
 
 * Download the [data](https://mega.nz/#!O6wXlSTS!wcEoDT4Ctq5HRq_hV-aWeVF1_JB3cacQBQqOLjCIbc8) folder, which contains the features and the ground truth labels. (~30GB)
