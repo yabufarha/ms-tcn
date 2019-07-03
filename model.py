@@ -14,11 +14,11 @@ class MultiStageModel(nn.Module):
         self.stage1 = SingleStageModel(num_layers, num_f_maps, dim, num_classes)
         self.stages = nn.ModuleList([copy.deepcopy(SingleStageModel(num_layers, num_f_maps, num_classes, num_classes)) for s in range(num_stages-1)])
 
-    def forward(self, x):
-        out = self.stage1(x)
+    def forward(self, x, mask):
+        out = self.stage1(x, mask)
         outputs = out.unsqueeze(0)
         for s in self.stages:
-            out = s(F.softmax(out, dim=1))
+            out = s(F.softmax(out, dim=1) * mask[:, 0:1, :], mask)
             outputs = torch.cat((outputs, out.unsqueeze(0)), dim=0)
         return outputs
 
@@ -30,11 +30,11 @@ class SingleStageModel(nn.Module):
         self.layers = nn.ModuleList([copy.deepcopy(DilatedResidualLayer(2 ** i, num_f_maps, num_f_maps)) for i in range(num_layers)])
         self.conv_out = nn.Conv1d(num_f_maps, num_classes, 1)
 
-    def forward(self, x):
+    def forward(self, x, mask):
         out = self.conv_1x1(x)
         for layer in self.layers:
-            out = layer(out)
-        out = self.conv_out(out)
+            out = layer(out, mask)
+        out = self.conv_out(out) * mask[:, 0:1, :]
         return out
 
 
@@ -45,11 +45,11 @@ class DilatedResidualLayer(nn.Module):
         self.conv_1x1 = nn.Conv1d(out_channels, out_channels, 1)
         self.dropout = nn.Dropout()
 
-    def forward(self, x):
+    def forward(self, x, mask):
         out = F.relu(self.conv_dilated(x))
         out = self.conv_1x1(out)
         out = self.dropout(out)
-        return x + out
+        return (x + out) * mask[:, 0:1, :]
 
 
 class Trainer:
@@ -71,7 +71,7 @@ class Trainer:
                 batch_input, batch_target, mask = batch_gen.next_batch(batch_size)
                 batch_input, batch_target, mask = batch_input.to(device), batch_target.to(device), mask.to(device)
                 optimizer.zero_grad()
-                predictions = self.model(batch_input)
+                predictions = self.model(batch_input, mask)
 
                 loss = 0
                 for p in predictions:
@@ -107,7 +107,7 @@ class Trainer:
                 input_x = torch.tensor(features, dtype=torch.float)
                 input_x.unsqueeze_(0)
                 input_x = input_x.to(device)
-                predictions = self.model(input_x)
+                predictions = self.model(input_x, torch.ones(input_x.size(), device=device))
                 _, predicted = torch.max(predictions[-1].data, 1)
                 predicted = predicted.squeeze()
                 recognition = []
