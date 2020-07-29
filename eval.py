@@ -29,7 +29,7 @@ def get_labels_start_end_time(frame_wise_labels, bg_class=["background"]):
                 ends.append(i)
             last_label = frame_wise_labels[i]
     if last_label not in bg_class:
-        ends.append(i)
+        ends.append(i + 1)
     return labels, starts, ends
 
 
