@@ -1,6 +1,8 @@
 # MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation
 This repository provides a PyTorch implementation of the paper [MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation](https://arxiv.org/pdf/1903.01945.pdf).
 
+An extended version has been published in TPAMI [Link](https://github.com/sj-li/MS-TCN2).
+
 Tested with:
 - PyTorch 0.4.1
 - Python 2.7.12
@@ -33,3 +35,7 @@ If you use the code, please cite
     Y. Abu Farha and J. Gall.
     MS-TCN: Multi-Stage Temporal Convolutional Network for Action Segmentation.
     In IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2019
+
+    S. Li, Y. Abu Farha, Y. Liu, MM. Cheng,  and J. Gall.
+    MS-TCN++: Multi-Stage Temporal Convolutional Network for Action Segmentation.
+    In IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI), 2020
