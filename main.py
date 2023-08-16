@@ -53,7 +53,7 @@ mapping_file = f"{data_root}/tcn_sample_data/{args.dataset}/mapping.txt"
 
 # Outputs
 output_dir = f"/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/training/cooking/{args.dataset}/TCN"
-exp_name = "coffee_base"
+exp_name = "base"
 save_dir = f"{output_dir}/{exp_name}"
 
 model_dir = f"{save_dir}/models/"+args.dataset+"/split_"+args.split

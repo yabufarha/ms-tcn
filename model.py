@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import ubelt as ub
 from torch import optim
 import copy
 import numpy as np
@@ -93,26 +94,35 @@ class Trainer:
                                                                float(correct)/total))
 
     def predict(self, model_dir, results_dir, features_path, vid_list_file, epoch, actions_dict, device, sample_rate):
+        action_ids = list(actions_dict.values())
+        action_strs = list(actions_dict.keys())
+        
         self.model.eval()
+
         with torch.no_grad():
             self.model.to(device)
             self.model.load_state_dict(torch.load(model_dir + "/epoch-" + str(epoch) + ".model"))
             file_ptr = open(vid_list_file, 'r')
             list_of_vids = file_ptr.read().split('\n')[:-1]
             file_ptr.close()
-            for vid in list_of_vids:
-                print vid
+            for vid in ub.ProgIter(list_of_vids, desc="Predicting videos"):
                 features = np.load(features_path + vid.split('.')[0] + '.npy')
                 features = features[:, ::sample_rate]
                 input_x = torch.tensor(features, dtype=torch.float)
                 input_x.unsqueeze_(0)
                 input_x = input_x.to(device)
+                #import pdb; pdb.set_trace()
                 predictions = self.model(input_x, torch.ones(input_x.size(), device=device))
                 _, predicted = torch.max(predictions[-1].data, 1)
                 predicted = predicted.squeeze()
                 recognition = []
+                
                 for i in range(len(predicted)):
-                    recognition = np.concatenate((recognition, [actions_dict.keys()[actions_dict.values().index(predicted[i].item())]]*sample_rate))
+                    x = [action_strs[action_ids.index(predicted[i].item())]]
+                    recognition = np.concatenate(
+                            (recognition, 
+                             x*sample_rate)
+                        )
                 f_name = vid.split('/')[-1].split('.')[0]
                 f_ptr = open(results_dir + "/" + f_name, "w")
                 f_ptr.write("### Frame level recognition: ###\n")

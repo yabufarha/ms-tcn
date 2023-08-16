@@ -36,7 +36,7 @@ def get_labels_start_end_time(frame_wise_labels, bg_class=["background"]):
 def levenstein(p, y, norm=False):
     m_row = len(p)    
     n_col = len(y)
-    D = np.zeros([m_row+1, n_col+1], np.float)
+    D = np.zeros([m_row+1, n_col+1], np.float64)
     for i in range(m_row+1):
         D[i, 0] = i
     for i in range(n_col+1):
@@ -98,10 +98,21 @@ def main():
 
     args = parser.parse_args()
 
-    ground_truth_path = "./data/"+args.dataset+"/groundTruth/"
-    recog_path = "./results/"+args.dataset+"/split_"+args.split+"/"
-    file_list = "./data/"+args.dataset+"/splits/test.split"+args.split+".bundle"
+    #####################
+    # Filepaths
+    #####################
+    # Inputs
+    data_root = "/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/data"
+    ground_truth_path = f"{data_root}/tcn_sample_data/{args.dataset}/groundTruth/"
+    file_list = f"{data_root}/tcn_sample_data/{args.dataset}/splits/test.split{args.split}.bundle"
 
+    # Outputs
+    output_dir = f"/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/training/cooking/{args.dataset}/TCN"
+    exp_name = "base"
+    save_dir = f"{output_dir}/{exp_name}"
+
+    recog_path = f"{save_dir}/results/{args.dataset}/split_{args.split}/"
+    
     list_of_videos = read_file(file_list).split('\n')[:-1]
 
     overlap = [.1, .25, .5]
@@ -131,8 +142,8 @@ def main():
             fp[s] += fp1
             fn[s] += fn1
             
-    print "Acc: %.4f" % (100*float(correct)/total)
-    print 'Edit: %.4f' % ((1.0*edit)/len(list_of_videos))
+    print("Acc: %.4f" % (100*float(correct)/total))
+    print('Edit: %.4f' % ((1.0*edit)/len(list_of_videos)))
     for s in range(len(overlap)):
         precision = tp[s] / float(tp[s]+fp[s])
         recall = tp[s] / float(tp[s]+fn[s])
@@ -140,7 +151,7 @@ def main():
         f1 = 2.0 * (precision*recall) / (precision+recall)
 
         f1 = np.nan_to_num(f1)*100
-        print 'F1@%0.2f: %.4f' % (overlap[s], f1)
+        print('F1@%0.2f: %.4f' % (overlap[s], f1))
 
 
 if __name__ == '__main__':
