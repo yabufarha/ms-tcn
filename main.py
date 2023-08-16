@@ -7,7 +7,9 @@ import os
 import argparse
 import random
 
-
+#####################
+# Arguments
+#####################
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 seed = 1538574472
 random.seed(seed)
@@ -37,16 +39,28 @@ sample_rate = 1
 if args.dataset == "50salads":
     sample_rate = 2
 
-vid_list_file = "./data/"+args.dataset+"/splits/train.split"+args.split+".bundle"
-vid_list_file_tst = "./data/"+args.dataset+"/splits/test.split"+args.split+".bundle"
-features_path = "./data/"+args.dataset+"/features/"
-gt_path = "./data/"+args.dataset+"/groundTruth/"
+#####################
+# Filepaths
+#####################
+# Inputs
+data_root = "/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/data"
 
-mapping_file = "./data/"+args.dataset+"/mapping.txt"
+vid_list_file = f"{data_root}/tcn_sample_data/{args.dataset}/splits/train.split{args.split}.bundle"
+vid_list_file_tst = f"{data_root}/tcn_sample_data/{args.dataset}/splits/test.split{args.split}.bundle"
+features_path = f"{data_root}/tcn_sample_data/{args.dataset}/features/"
+gt_path = f"{data_root}/tcn_sample_data/{args.dataset}/groundTruth/"
+mapping_file = f"{data_root}/tcn_sample_data/{args.dataset}/mapping.txt"
 
-model_dir = "./models/"+args.dataset+"/split_"+args.split
-results_dir = "./results/"+args.dataset+"/split_"+args.split
- 
+# Outputs
+output_dir = f"/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/training/cooking/{args.dataset}/TCN"
+exp_name = "coffee_base"
+save_dir = f"{output_dir}/{exp_name}"
+
+model_dir = f"{save_dir}/models/"+args.dataset+"/split_"+args.split
+results_dir = f"{save_dir}/results/"+args.dataset+"/split_"+args.split
+
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 if not os.path.exists(results_dir):
@@ -61,6 +75,9 @@ for a in actions:
 
 num_classes = len(actions_dict)
 
+#####################
+# Train
+#####################
 trainer = Trainer(num_stages, num_layers, num_f_maps, features_dim, num_classes)
 if args.action == "train":
     batch_gen = BatchGenerator(num_classes, actions_dict, gt_path, features_path, sample_rate)
