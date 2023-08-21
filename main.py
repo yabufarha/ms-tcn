@@ -44,16 +44,17 @@ if args.dataset == "50salads":
 #####################
 # Inputs
 data_root = "/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/data"
+exp_data = f"{data_root}/Coffee/TCN_data/coffee_base"
 
-vid_list_file = f"{data_root}/tcn_sample_data/{args.dataset}/splits/train.split{args.split}.bundle"
-vid_list_file_tst = f"{data_root}/tcn_sample_data/{args.dataset}/splits/test.split{args.split}.bundle"
-features_path = f"{data_root}/tcn_sample_data/{args.dataset}/features/"
-gt_path = f"{data_root}/tcn_sample_data/{args.dataset}/groundTruth/"
-mapping_file = f"{data_root}/tcn_sample_data/{args.dataset}/mapping.txt"
+vid_list_file = f"{exp_data}/splits/train_activity.split{args.split}.bundle"
+vid_list_file_tst = f"{exp_data}/splits/val.split{args.split}.bundle"
+features_path = f"{exp_data}/features/"
+gt_path = f"{exp_data}/groundTruth/"
+mapping_file = f"{exp_data}/mapping.txt"
 
 # Outputs
-output_dir = f"/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/training/cooking/{args.dataset}/TCN"
-exp_name = "base"
+output_dir = f"/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/training/cooking/coffee/TCN"
+exp_name = "coffee_base"
 save_dir = f"{output_dir}/{exp_name}"
 
 model_dir = f"{save_dir}/models/"+args.dataset+"/split_"+args.split
