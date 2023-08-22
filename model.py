@@ -124,7 +124,7 @@ class Trainer:
                              x*sample_rate)
                         )
                 f_name = vid.split('/')[-1].split('.')[0]
-                f_ptr = open(results_dir + "/" + f_name, "w")
+                f_ptr = open(results_dir + "/" + f_name + ".txt", "w")
                 f_ptr.write("### Frame level recognition: ###\n")
                 f_ptr.write(' '.join(recognition))
                 f_ptr.close()
