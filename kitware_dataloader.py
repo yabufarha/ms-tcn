@@ -21,17 +21,17 @@ from angel_system.activity_hmm.train_activity_classifier import (
 #####################
 # Inputs
 #####################
-ptg_root = "/home/local/KHQ/hannah.defazio/projects/PTG/angel_system/"
+ptg_root = "/home/local/KHQ/hannah.defazio/angel_system/"
 activity_config_path = f"{ptg_root}/config/activity_labels"
 recipe = "coffee"
 activity_config_fn = f"{activity_config_path}/recipe_{recipe}.yaml"
 
-data_dir = "/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/data/Coffee"
-extracted_data_dir = f"{data_dir}/coffee_recordings/extracted"
+data_dir = "/data/hannah.defazio/ptg_nas/data_copy/"
+extracted_data_dir = f"{data_dir}/coffee_extracted"
 activity_gt_dir = f"{data_dir}/coffee_labels/Labels"
 
 exp_name = "coffee_base"
-obj_dets_dir = f"/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/data/Coffee/object_detection_results/{exp_name}"
+obj_dets_dir = f"/data/ptg/cooking/annotations/coffee/results/{exp_name}"
 
 training_split = {
     "train_activity": [f"all_activities_{x}" for x in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 40, 47, 48, 49]],
@@ -53,13 +53,17 @@ if not os.path.exists(gt_dir):
 bundle_dir = f"{output_data_dir}/splits"
 if not os.path.exists(bundle_dir):
     os.makedirs(bundle_dir)
+# Clear out the bundles
+filelist = [ f for f in os.listdir(bundle_dir) ]
+for f in filelist:
+    os.remove(os.path.join(bundle_dir, f))
 
 features_dir = f"{output_data_dir}/features"
 if not os.path.exists(features_dir):
     os.makedirs(features_dir)
 
 #####################
-# Create mapping.txt
+# Mapping
 #####################
 print("Creating mapping...")
 with open(activity_config_fn, "r") as stream:
@@ -73,49 +77,10 @@ with open(f"{output_data_dir}/mapping.txt", "w") as mapping:
         mapping.write(f"{i} {label_str}\n")
 
 #####################
-# Create groundtruth
+# Features,
+# groundtruth and 
+# bundles
 #####################
-print("Creating groundtruth...")
-videos = training_split["train_activity"] + training_split["val"] + training_split["test"]
-for video in ub.ProgIter(videos, desc="Creating groundtruth and bundles"):
-    extracted_frames_dir = f"{extracted_data_dir}/{video}/_extracted/images"
-    frames = glob.glob(f"{extracted_frames_dir}/*.png")
-
-    activity_gt_fn = f"{activity_gt_dir}/{video}.csv"
-    gt = activities_from_dive_csv(activity_gt_fn)
-    gt = objs_as_dataframe(gt)
-
-    with open(f"{gt_dir}/{video}.txt", "w") as gt_f:
-        for frame in frames:
-            frame_idx, time = time_from_name(frame) 
-            matching_gt = gt.loc[(gt["start"] <= time) & (gt["end"] >= time)]
-            #print('matching gt', matching_gt)
-            if matching_gt.empty:
-                label = "background"
-                activity_label = label
-            else:
-                label = matching_gt.iloc[0]["class_label"]
-                activity = [x for x in activity_labels[1:-1] if sanitize_str(x["full_str"]) == label]
-                if not activity:
-                    warnings.warn(f"Label: {label} is not in the activity labels config, ignoring")
-                    continue
-                activity = activity[0]
-                activity_label = activity["label"]
-
-            gt_f.write(f"{activity_label}\n")
-
-    # Create bundles
-    for split, split_videos in training_split.items():
-        if video in split_videos:
-            break
-    with open(f"{bundle_dir}/{split}.split1.bundle", "a+") as bundle:
-        bundle.write(f"{video}.txt\n")
-
-#####################
-# Create features
-#####################
-print("Creating features...")
-pred_fnames = []
 for split in training_split.keys():
     kwcoco_file = f"{obj_dets_dir}/{exp_name}_results_{split}.mscoco.json"
     dset = kwcoco.CocoDataset(kwcoco_file)
@@ -125,11 +90,18 @@ for split in training_split.keys():
     for video_id in ub.ProgIter(dset.index.videos.keys(), desc=f"Creating features for videos in {split}"):
         video = dset.index.videos[video_id]
         video_name = video["name"]
+
+        activity_gt_fn = f"{activity_gt_dir}/{video_name}.csv"
+        gt = activities_from_dive_csv(activity_gt_fn)
+        gt = objs_as_dataframe(gt)
         
         image_ids = dset.index.vidid_to_gids[video_id]
         num_images = len(image_ids)
+        print("Num images: ", num_images)
         video_dset = dset.subset(gids=image_ids, copy=True)
+        assert len(video_dset.imgs) == num_images
 
+        # features
         (
             act_map,
             inv_act_map,
@@ -147,9 +119,38 @@ for split in training_split.keys():
             act_id_to_str,
             ann_by_image,
         )
-
-        X.reshape(num_classes, -1)
+        # num obj det classes x num frames
+        X = X.reshape(num_classes, -1)
+        print(X.shape)
         np.save(f"{features_dir}/{video_name}.npy", X)
+
+        # groundtruth
+        with open(f"{gt_dir}/{video_name}.txt", "w") as gt_f:
+            for image_id in image_ids:
+                image = dset.imgs[image_id]
+                image_n = image["file_name"]
+
+                frame_idx, time = time_from_name(image_n) 
+                matching_gt = gt.loc[(gt["start"] <= time) & (gt["end"] >= time)]
+
+                if matching_gt.empty:
+                    label = "background"
+                    activity_label = label
+                else:
+                    label = matching_gt.iloc[0]["class_label"]
+                    activity = [x for x in activity_labels[1:-1] if sanitize_str(x["full_str"]) == label]
+                    if not activity:
+                        warnings.warn(f"Label: {label} is not in the activity labels config, ignoring")
+                        activity_label = "background"
+                    else:
+                        activity = activity[0]
+                        activity_label = activity["label"]
+
+                gt_f.write(f"{activity_label}\n")
+
+        # bundles
+        with open(f"{bundle_dir}/{split}.split1.bundle", "a+") as bundle:
+            bundle.write(f"{video_name}.txt\n")
 
 print("Done!")
 print(f"Saved training data to {output_data_dir}")
