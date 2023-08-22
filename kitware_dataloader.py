@@ -11,11 +11,11 @@ from angel_system.data.common.load_data import (
     activities_from_dive_csv,
     objs_as_dataframe,
     time_from_name,
-    sanitize_str
+    sanitize_str,
 )
 from angel_system.activity_hmm.train_activity_classifier import (
     data_loader,
-    compute_feats
+    compute_feats,
 )
 
 #####################
@@ -34,7 +34,11 @@ exp_name = "coffee_base"
 obj_dets_dir = f"/data/ptg/cooking/annotations/coffee/results/{exp_name}"
 
 training_split = {
-    "train_activity": [f"all_activities_{x}" for x in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 40, 47, 48, 49]],
+    "train_activity": [
+        f"all_activities_{x}"
+        for x in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 25, 26, 27,
+            28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 40, 47, 48, 49]
+    ],
     "val": [f"all_activities_{x}" for x in [23, 24, 42, 46]],
     "test": [f"all_activities_{x}" for x in [20, 33, 39, 50, 51, 52, 53, 54]],
 }  # Coffee specific
@@ -54,7 +58,7 @@ bundle_dir = f"{output_data_dir}/splits"
 if not os.path.exists(bundle_dir):
     os.makedirs(bundle_dir)
 # Clear out the bundles
-filelist = [ f for f in os.listdir(bundle_dir) ]
+filelist = [f for f in os.listdir(bundle_dir)]
 for f in filelist:
     os.remove(os.path.join(bundle_dir, f))
 
@@ -65,7 +69,6 @@ if not os.path.exists(features_dir):
 #####################
 # Mapping
 #####################
-print("Creating mapping...")
 with open(activity_config_fn, "r") as stream:
     activity_config = yaml.safe_load(stream)
 activity_labels = activity_config["labels"]
@@ -78,7 +81,7 @@ with open(f"{output_data_dir}/mapping.txt", "w") as mapping:
 
 #####################
 # Features,
-# groundtruth and 
+# groundtruth and
 # bundles
 #####################
 for split in training_split.keys():
@@ -87,19 +90,20 @@ for split in training_split.keys():
 
     num_classes = len(dset.cats)
 
-    for video_id in ub.ProgIter(dset.index.videos.keys(), desc=f"Creating features for videos in {split}"):
+    for video_id in ub.ProgIter(
+        dset.index.videos.keys(), desc=f"Creating features for videos in {split}"
+    ):
         video = dset.index.videos[video_id]
         video_name = video["name"]
 
         activity_gt_fn = f"{activity_gt_dir}/{video_name}.csv"
         gt = activities_from_dive_csv(activity_gt_fn)
         gt = objs_as_dataframe(gt)
-        
+
         image_ids = dset.index.vidid_to_gids[video_id]
         num_images = len(image_ids)
-        print("Num images: ", num_images)
+
         video_dset = dset.subset(gids=image_ids, copy=True)
-        assert len(video_dset.imgs) == num_images
 
         # features
         (
@@ -121,7 +125,6 @@ for split in training_split.keys():
         )
         # num obj det classes x num frames
         X = X.reshape(num_classes, -1)
-        print(X.shape)
         np.save(f"{features_dir}/{video_name}.npy", X)
 
         # groundtruth
@@ -130,7 +133,7 @@ for split in training_split.keys():
                 image = dset.imgs[image_id]
                 image_n = image["file_name"]
 
-                frame_idx, time = time_from_name(image_n) 
+                frame_idx, time = time_from_name(image_n)
                 matching_gt = gt.loc[(gt["start"] <= time) & (gt["end"] >= time)]
 
                 if matching_gt.empty:
@@ -138,9 +141,15 @@ for split in training_split.keys():
                     activity_label = label
                 else:
                     label = matching_gt.iloc[0]["class_label"]
-                    activity = [x for x in activity_labels[1:-1] if sanitize_str(x["full_str"]) == label]
+                    activity = [
+                        x
+                        for x in activity_labels[1:-1]
+                        if sanitize_str(x["full_str"]) == label
+                    ]
                     if not activity:
-                        warnings.warn(f"Label: {label} is not in the activity labels config, ignoring")
+                        warnings.warn(
+                            f"Label: {label} is not in the activity labels config, ignoring"
+                        )
                         activity_label = "background"
                     else:
                         activity = activity[0]
