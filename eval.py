@@ -102,16 +102,18 @@ def main():
     # Filepaths
     #####################
     # Inputs
-    data_root = "/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/data"
-    ground_truth_path = f"{data_root}/tcn_sample_data/{args.dataset}/groundTruth/"
-    file_list = f"{data_root}/tcn_sample_data/{args.dataset}/splits/test.split{args.split}.bundle"
+    exp_name = "coffee_base"
+    data_root = "/data/hannah.defazio/ptg_nas/data_copy/"
+    exp_data = f"{data_root}/TCN_data/{exp_name}"
+
+    ground_truth_path = f"{exp_data}/groundTruth/"
+    file_list = f"{exp_data}/splits/val.split{args.split}.bundle"
 
     # Outputs
-    output_dir = f"/media/hannah.defazio/Padlock_DT/Data/notpublic/PTG/training/cooking/{args.dataset}/TCN"
-    exp_name = "base"
-    save_dir = f"{output_dir}/{exp_name}"
+    output_dir = f"/data/ptg/cooking/training/activity_classifier/TCN"
+    save_dir = f"{output_dir}/{exp_name}_e200"
 
-    recog_path = f"{save_dir}/results/{args.dataset}/split_{args.split}/"
+    recog_path = f"{save_dir}/results/split_{args.split}/"
     
     list_of_videos = read_file(file_list).split('\n')[:-1]
 
