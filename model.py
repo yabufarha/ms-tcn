@@ -66,13 +66,42 @@ class DilatedResidualLayer(nn.Module):
         out = self.dropout(out)
         return (x + out) * mask[:, 0:1, :]
 
+class FocalLoss(nn.Module):
+    """
+    Multi-class Focal Loss from the paper 
+    `https://arxiv.org/pdf/1708.02002v2.pdf`
+    """
+    def __init__(self, alpha=0.25, gamma=2, weight=None, reduction="mean"):
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.reduction = reduction
+
+        self.ce = nn.CrossEntropyLoss(
+            ignore_index=-100, 
+            reduction="none"
+        )
+
+    def forward(self, inputs, targets):
+        ce_loss = self.ce(inputs, targets)
+        pt = torch.exp(-ce_loss)
+
+        focal_loss = self.alpha * (1 - pt)**self.gamma * ce_loss
+
+        # Check reduction option and return loss accordingly
+        if self.reduction == "mean":
+            focal_loss = focal_loss.mean()
+        elif self.reduction == "sum":
+            focal_loss = focal_loss.sum()
+
+        return focal_loss
 
 class Trainer:
     def __init__(self, num_blocks, num_layers, num_f_maps, dim, num_classes):
         self.model = MultiStageModel(
             num_blocks, num_layers, num_f_maps, dim, num_classes
         )
-        self.ce = nn.CrossEntropyLoss(ignore_index=-100)
+        self.loss_f = FocalLoss() #nn.CrossEntropyLoss(ignore_index=-100)
         self.mse = nn.MSELoss(reduction="none")
         self.num_classes = num_classes
 
@@ -96,11 +125,11 @@ class Trainer:
 
                 loss = 0
                 for p in predictions:
-                    loss += self.ce(
+                    loss += self.loss_f(
                         p.transpose(2, 1).contiguous().view(-1, self.num_classes),
                         batch_target.view(-1),
                     )
-                    loss += 0.15 * torch.mean(
+                    loss += 0.015 * torch.mean(
                         torch.clamp(
                             self.mse(
                                 F.log_softmax(p[:, :, 1:], dim=1),
