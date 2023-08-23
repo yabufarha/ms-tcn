@@ -77,6 +77,8 @@ with open(f"{output_data_dir}/mapping.txt", "w") as mapping:
     for label in activity_labels:
         i = label["id"]
         label_str = label["label"]
+        if label_str == "done":
+            continue
         mapping.write(f"{i} {label_str}\n")
 
 #####################
