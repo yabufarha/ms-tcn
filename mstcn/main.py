@@ -1,6 +1,7 @@
 import argparse
 import os
 import random
+from pathlib import Path
 
 import torch
 
@@ -35,41 +36,43 @@ sample_rate = 1
 # for 50salads, and up-sample the output to 30 fps
 if args.dataset == "50salads":
     sample_rate = 2
+elif args.dataset == "bike_students_blip2":
+    features_dim = 256
 
-vid_list_file = (
-    "./data/" + args.dataset + "/splits/train.split" + args.split + ".bundle"
-)
-vid_list_file_tst = (
-    "./data/" + args.dataset + "/splits/test.split" + args.split + ".bundle"
-)
-features_path = "./data/" + args.dataset + "/features/"
-gt_path = "./data/" + args.dataset + "/groundTruth/"
 
-mapping_file = "./data/" + args.dataset + "/mapping.txt"
+DATA_DIR = Path("./data")
+assert DATA_DIR.exists()
 
-model_dir = "./models/" + args.dataset + "/split_" + args.split
-results_dir = "./results/" + args.dataset + "/split_" + args.split
+vid_train_list_file = DATA_DIR / args.dataset / "splits" / f"train.split{args.split}.bundle"
+vid_test_list_file = DATA_DIR / args.dataset / "splits" / f"test.split{args.split}.bundle"
+
+features_dir = DATA_DIR / args.dataset / "features"
+gt_dir = DATA_DIR / args.dataset / "groundTruth"
+mapping_file = DATA_DIR / args.dataset / "mapping.txt"
+
+model_dir = Path("./models") / args.dataset / f"split_{args.split}"
+results_dir = Path("./results") / args.dataset / f"split_{args.split}"
 
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 if not os.path.exists(results_dir):
     os.makedirs(results_dir)
 
+action_name_to_id: dict[str, int] = {}
+
 with open(mapping_file, "r") as f:
-    actions = f.read().split("\n")[:-1]
+    for line in f.readlines():
+        act_id, act_name = line.split()
+        action_name_to_id[act_name] = int(act_id)
 
-actions_dict = {}
-for a in actions:
-    actions_dict[a.split()[1]] = int(a.split()[0])
-
-num_classes = len(actions_dict)
+num_classes = len(action_name_to_id)
 
 trainer = Trainer(num_stages, num_layers, num_f_maps, features_dim, num_classes)
 if args.action == "train":
     batch_gen = BatchGenerator(
-        num_classes, actions_dict, gt_path, features_path, sample_rate
+        num_classes, action_name_to_id, gt_dir, features_dir, sample_rate
     )
-    batch_gen.read_data(vid_list_file)
+    batch_gen.read_data(vid_train_list_file)
     trainer.train(
         model_dir,
         batch_gen,
@@ -83,10 +86,10 @@ if args.action == "predict":
     trainer.predict(
         model_dir,
         results_dir,
-        features_path,
-        vid_list_file_tst,
+        features_dir,
+        vid_test_list_file,
         num_epochs,
-        actions_dict,
+        action_name_to_id,
         device,
         sample_rate,
     )

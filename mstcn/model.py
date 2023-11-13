@@ -1,8 +1,12 @@
+from pathlib import Path
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
+
+from mstcn.batch_gen import BatchGenerator
 
 
 class MultiStageModel(nn.Module):
@@ -66,7 +70,15 @@ class Trainer:
         self.mse = nn.MSELoss(reduction="none")
         self.num_classes = num_classes
 
-    def train(self, save_dir, batch_gen, num_epochs, batch_size, learning_rate, device):
+    def train(
+        self,
+        save_dir: Path,
+        batch_gen: BatchGenerator,
+        num_epochs: int,
+        batch_size: int,
+        learning_rate: float,
+        device: torch.device,
+    ):
         self.model.train()
         self.model.to(device)
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
@@ -84,7 +96,7 @@ class Trainer:
                 optimizer.zero_grad()
                 predictions = self.model(batch_input, mask)
 
-                loss = torch.Tensor(0.0)
+                loss = torch.tensor(0.0, device=device)
                 for p in predictions:
                     loss += self.ce(
                         p.transpose(2, 1).contiguous().view(-1, self.num_classes),
@@ -115,13 +127,8 @@ class Trainer:
                 total += torch.sum(mask[:, 0, :]).item()
 
             batch_gen.reset()
-            torch.save(
-                self.model.state_dict(),
-                save_dir + "/epoch-" + str(epoch + 1) + ".model",
-            )
-            torch.save(
-                optimizer.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + ".opt"
-            )
+            torch.save(self.model.state_dict(), save_dir / f"epoch-{epoch + 1}.model")
+            torch.save(optimizer.state_dict(), save_dir / f"epoch-{epoch + 1}.opt")
             print(
                 "[epoch %d]: epoch loss = %f,   acc = %f"
                 % (
@@ -133,28 +140,29 @@ class Trainer:
 
     def predict(
         self,
-        model_dir,
-        results_dir,
-        features_path,
-        vid_list_file,
-        epoch,
-        actions_dict,
-        device,
-        sample_rate,
+        model_dir: Path,
+        results_dir: Path,
+        features_dir: Path,
+        vid_list_file: Path,
+        epoch: int,
+        actions_dict: dict[str, int],
+        device: torch.device,
+        sample_rate: int,
     ):
         self.model.eval()
+        actions_dict_inv = {
+            act_id: act_name for act_name, act_id in actions_dict.items()
+        }
         with torch.no_grad():
             self.model.to(device)
-            self.model.load_state_dict(
-                torch.load(model_dir + "/epoch-" + str(epoch) + ".model")
-            )
+            self.model.load_state_dict(torch.load(model_dir / f"epoch-{epoch}.model"))
 
             with open(vid_list_file, "r") as f:
-                list_of_vids = f.read().split("\n")[:-1]
+                list_of_vids = [line.strip() for line in f.readlines()]
 
             for vid in list_of_vids:
                 print(vid)
-                features = np.load(features_path + vid.split(".")[0] + ".npy")
+                features = np.load(features_dir / (vid.split(".")[0] + ".npy"))
                 features = features[:, ::sample_rate]
                 input_x = torch.tensor(features, dtype=torch.float)
                 input_x.unsqueeze_(0)
@@ -169,15 +177,10 @@ class Trainer:
                     recognition = np.concatenate(
                         (
                             recognition,
-                            [
-                                actions_dict.keys()[
-                                    actions_dict.values().index(predicted[i].item())
-                                ]
-                            ]
-                            * sample_rate,
+                            [actions_dict_inv[int(predicted[i].item())]] * sample_rate,
                         )
                     )
                 f_name = vid.split("/")[-1].split(".")[0]
-                with open(results_dir + "/" + f_name, "w") as f:
+                with open(results_dir / f_name, "w") as f:
                     f.write("### Frame level recognition: ###\n")
                     f.write(" ".join(recognition))

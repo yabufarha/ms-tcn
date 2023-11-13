@@ -9,7 +9,6 @@ import numpy as np
 def read_file(path):
     with open(path, "r") as f:
         content = f.read()
-        f.close()
     return content
 
 
@@ -111,9 +110,10 @@ def main():
 
     ground_truth_path = "./data/" + args.dataset + "/groundTruth/"
     recog_path = "./results/" + args.dataset + "/split_" + args.split + "/"
-    file_list = "./data/" + args.dataset + "/splits/test.split" + args.split + ".bundle"
+    vid_test_list_file = "./data/" + args.dataset + "/splits/test.split" + args.split + ".bundle"
 
-    list_of_videos = read_file(file_list).split("\n")[:-1]
+    with open(vid_test_list_file) as f:
+        list_of_videos = [line.strip() for line in f.readlines()]
 
     overlap = [0.1, 0.25, 0.5]
     tp, fp, fn = np.zeros(3), np.zeros(3), np.zeros(3)
