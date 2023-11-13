@@ -1,6 +1,7 @@
 # adapted from: https://github.com/colincsl/TemporalConvolutionalNetworks/blob/master/code/metrics.py
 
 import argparse
+from typing import Sequence
 
 import numpy as np
 
@@ -12,7 +13,9 @@ def read_file(path):
     return content
 
 
-def get_labels_start_end_time(frame_wise_labels, bg_class=["background"]):
+def get_labels_start_end_time(
+    frame_wise_labels, bg_class: Sequence[str] = ("background")
+):
     labels = []
     starts = []
     ends = []
@@ -33,10 +36,10 @@ def get_labels_start_end_time(frame_wise_labels, bg_class=["background"]):
     return labels, starts, ends
 
 
-def levenstein(p, y, norm=False):
+def levenstein(p, y, *, norm=False):
     m_row = len(p)
     n_col = len(y)
-    D = np.zeros([m_row + 1, n_col + 1], np.float)
+    D = np.zeros([m_row + 1, n_col + 1], np.int32)
     for i in range(m_row + 1):
         D[i, 0] = i
     for i in range(n_col + 1):
@@ -57,13 +60,17 @@ def levenstein(p, y, norm=False):
     return score
 
 
-def edit_score(recognized, ground_truth, norm=True, bg_class=["background"]):
+def edit_score(
+    recognized, ground_truth, *, norm=True, bg_class: Sequence[str] = ("background")
+):
     P, _, _ = get_labels_start_end_time(recognized, bg_class)
     Y, _, _ = get_labels_start_end_time(ground_truth, bg_class)
-    return levenstein(P, Y, norm)
+    return levenstein(P, Y, norm=norm)
 
 
-def f_score(recognized, ground_truth, overlap, bg_class=["background"]):
+def f_score(
+    recognized, ground_truth, overlap, bg_class: Sequence[str] = ("background")
+):
     p_label, p_start, p_end = get_labels_start_end_time(recognized, bg_class)
     y_label, y_start, y_end = get_labels_start_end_time(ground_truth, bg_class)
 

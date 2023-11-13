@@ -55,10 +55,10 @@ if not os.path.exists(model_dir):
 if not os.path.exists(results_dir):
     os.makedirs(results_dir)
 
-file_ptr = open(mapping_file, "r")
-actions = file_ptr.read().split("\n")[:-1]
-file_ptr.close()
-actions_dict = dict()
+with open(mapping_file, "r") as f:
+    actions = f.read().split("\n")[:-1]
+
+actions_dict = {}
 for a in actions:
     actions_dict[a.split()[1]] = int(a.split()[0])
 

@@ -1,5 +1,3 @@
-import copy
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,15 +7,11 @@ from torch import optim
 
 class MultiStageModel(nn.Module):
     def __init__(self, num_stages, num_layers, num_f_maps, dim, num_classes):
-        super(MultiStageModel, self).__init__()
+        super().__init__()
         self.stage1 = SingleStageModel(num_layers, num_f_maps, dim, num_classes)
         self.stages = nn.ModuleList(
-            [
-                copy.deepcopy(
-                    SingleStageModel(num_layers, num_f_maps, num_classes, num_classes)
-                )
-                for s in range(num_stages - 1)
-            ]
+            SingleStageModel(num_layers, num_f_maps, num_classes, num_classes)
+            for _ in range(num_stages - 1)
         )
 
     def forward(self, x, mask):
@@ -31,13 +25,11 @@ class MultiStageModel(nn.Module):
 
 class SingleStageModel(nn.Module):
     def __init__(self, num_layers, num_f_maps, dim, num_classes):
-        super(SingleStageModel, self).__init__()
+        super().__init__()
         self.conv_1x1 = nn.Conv1d(dim, num_f_maps, 1)
         self.layers = nn.ModuleList(
-            [
-                copy.deepcopy(DilatedResidualLayer(2**i, num_f_maps, num_f_maps))
-                for i in range(num_layers)
-            ]
+            DilatedResidualLayer(2**i, num_f_maps, num_f_maps)
+            for i in range(num_layers)
         )
         self.conv_out = nn.Conv1d(num_f_maps, num_classes, 1)
 
@@ -51,7 +43,7 @@ class SingleStageModel(nn.Module):
 
 class DilatedResidualLayer(nn.Module):
     def __init__(self, dilation, in_channels, out_channels):
-        super(DilatedResidualLayer, self).__init__()
+        super().__init__()
         self.conv_dilated = nn.Conv1d(
             in_channels, out_channels, 3, padding=dilation, dilation=dilation
         )
@@ -156,9 +148,10 @@ class Trainer:
             self.model.load_state_dict(
                 torch.load(model_dir + "/epoch-" + str(epoch) + ".model")
             )
-            file_ptr = open(vid_list_file, "r")
-            list_of_vids = file_ptr.read().split("\n")[:-1]
-            file_ptr.close()
+
+            with open(vid_list_file, "r") as f:
+                list_of_vids = f.read().split("\n")[:-1]
+
             for vid in list_of_vids:
                 print(vid)
                 features = np.load(features_path + vid.split(".")[0] + ".npy")
@@ -185,7 +178,6 @@ class Trainer:
                         )
                     )
                 f_name = vid.split("/")[-1].split(".")[0]
-                f_ptr = open(results_dir + "/" + f_name, "w")
-                f_ptr.write("### Frame level recognition: ###\n")
-                f_ptr.write(" ".join(recognition))
-                f_ptr.close()
+                with open(results_dir + "/" + f_name, "w") as f:
+                    f.write("### Frame level recognition: ###\n")
+                    f.write(" ".join(recognition))

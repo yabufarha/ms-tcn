@@ -75,4 +75,9 @@ select = [
 ]
 ignore = [
   "ANN101", # missing-type-self
+  "N806",   # Variable in function should be lowercase
+  "N812",   # Lowercase `functional` imported as non-lowercase `F`
+  "SIM108", # Use ternary operator instead of `if`-`else`-block
+  "UP015",  # Unnecessary open mode parameters
+  "UP031",  # Use format specifiers instead of percent format
 ]
