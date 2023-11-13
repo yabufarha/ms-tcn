@@ -2,6 +2,8 @@
 tmp
 poetry.lock
 /data/
+/models/
+/results/
 
 .venv/
 __pycache__/

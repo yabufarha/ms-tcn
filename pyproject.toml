@@ -46,17 +46,19 @@ exclude = [
   "**/.*",
   "tmp",
   "data",
+  "models",
+  "results",
 ]
 
 [tool.isort]
 profile = "black"
 extend_skip = [
-  "tmp", "data",
+  "tmp", "data", "models", "results",
 ]
 
 [tool.ruff]
 extend-exclude = [
-  "tmp", "data",
+  "tmp", "data", "models", "results",
 ]
 # see: https://docs.astral.sh/ruff/rules/
 select = [
