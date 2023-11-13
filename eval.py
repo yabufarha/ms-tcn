@@ -23,6 +23,8 @@ def get_labels_start_end_time(
     if frame_wise_labels[0] not in bg_class:
         labels.append(frame_wise_labels[0])
         starts.append(0)
+
+    i = 0
     for i in range(len(frame_wise_labels)):
         if frame_wise_labels[i] != last_label:
             if frame_wise_labels[i] not in bg_class:
@@ -31,8 +33,10 @@ def get_labels_start_end_time(
             if last_label not in bg_class:
                 ends.append(i)
             last_label = frame_wise_labels[i]
+
     if last_label not in bg_class:
         ends.append(i + 1)
+
     return labels, starts, ends
 
 

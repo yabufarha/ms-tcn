@@ -84,7 +84,7 @@ class Trainer:
                 optimizer.zero_grad()
                 predictions = self.model(batch_input, mask)
 
-                loss = 0
+                loss = torch.Tensor(0.0)
                 for p in predictions:
                     loss += self.ce(
                         p.transpose(2, 1).contiguous().view(-1, self.num_classes),
