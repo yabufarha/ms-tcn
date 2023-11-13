@@ -1,5 +1,3 @@
-#!/usr/bin/python2.7
-
 import torch
 from model import Trainer
 from batch_gen import BatchGenerator

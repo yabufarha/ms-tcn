@@ -1,5 +1,3 @@
-#!/usr/bin/python2.7
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

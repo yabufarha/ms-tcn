@@ -1,5 +1,3 @@
-#!/usr/bin/python2.7
-
 import torch
 import numpy as np
 import random
