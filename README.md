@@ -3,11 +3,6 @@ This repository provides a PyTorch implementation of the paper [MS-TCN: Multi-St
 
 An extended version has been published in TPAMI [Link](https://github.com/sj-li/MS-TCN2).
 
-Tested with:
-- PyTorch 0.4.1
-- Python 2.7.12
-
-
 ### Qualitative Results:
 
 <div align="center">
@@ -18,15 +13,21 @@ Tested with:
 
 * Download the [data](https://mega.nz/#!O6wXlSTS!wcEoDT4Ctq5HRq_hV-aWeVF1_JB3cacQBQqOLjCIbc8) folder, which contains the features and the ground truth labels. (~30GB) (If you cannot download the data from the previous link, try to download it from [here](https://zenodo.org/record/3625992#.Xiv9jGhKhPY))
 * Extract it so that you have the `data` folder in the same directory as `main.py`.
-* To train the model run `python main.py --action=train --dataset=DS --split=SP` where `DS` is `breakfast`, `50salads` or `gtea`, and `SP` is the split number (1-5) for 50salads and (1-4) for the other datasets.
 
 ### Prediction:
 
-Run `python main.py --action=predict --dataset=DS --split=SP`. 
+```
+python3 -m mstcn.main --action=predict --dataset=DS --split=SP
+```
+
+- `DS`:  `breakfast`, `50salads` or `gtea`.
+- `SP`: the split number (1-5) for 50salads and (1-4) for the other datasets.
 
 ### Evaluation:
 
-Run `python eval.py --dataset=DS --split=SP`. 
+```
+python3 -m mstcn.eval --dataset=DS --split=SP
+```
 
 ### Citation:
 
