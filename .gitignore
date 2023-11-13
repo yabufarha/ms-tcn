@@ -1,6 +1,7 @@
 .env
 tmp
 poetry.lock
+/data/
 
 .venv/
 __pycache__/
