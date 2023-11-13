@@ -130,8 +130,8 @@ def main():
             fp[s] += fp1
             fn[s] += fn1
             
-    print "Acc: %.4f" % (100*float(correct)/total)
-    print 'Edit: %.4f' % ((1.0*edit)/len(list_of_videos))
+    print("Acc: %.4f" % (100*float(correct)/total))
+    print('Edit: %.4f' % ((1.0*edit)/len(list_of_videos)))
     for s in range(len(overlap)):
         precision = tp[s] / float(tp[s]+fp[s])
         recall = tp[s] / float(tp[s]+fn[s])
@@ -139,7 +139,7 @@ def main():
         f1 = 2.0 * (precision*recall) / (precision+recall)
 
         f1 = np.nan_to_num(f1)*100
-        print 'F1@%0.2f: %.4f' % (overlap[s], f1)
+        print('F1@%0.2f: %.4f' % (overlap[s], f1))
 
 
 if __name__ == '__main__':
