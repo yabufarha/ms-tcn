@@ -4,8 +4,8 @@ import random
 
 import torch
 
-from batch_gen import BatchGenerator
-from model import Trainer
+from mstcn.batch_gen import BatchGenerator
+from mstcn.model import Trainer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 seed = 1538574472
